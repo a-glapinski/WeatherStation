@@ -1,16 +1,14 @@
 /**
   ******************************************************************************
-  * @file           : main.h
-  * @brief          : Header for main.c file.
-  *                   This file contains the common defines of the application.
+  * @file    fonts.h
+  * @author  MCD Application Team
+  * @version V1.0.0
+  * @date    18-February-2014
+  * @brief   Header for fonts.c file
   ******************************************************************************
-  ** This notice applies to any and all portions of this file
-  * that are not between comment pairs USER CODE BEGIN and
-  * USER CODE END. Other portions of this file, whether 
-  * inserted by the user or by software development tools
-  * are owned by their respective copyright owners.
+  * @attention
   *
-  * COPYRIGHT(c) 2019 STMicroelectronics
+  * <h2><center>&copy; COPYRIGHT(c) 2014 STMicroelectronics</center></h2>
   *
   * Redistribution and use in source and binary forms, with or without modification,
   * are permitted provided that the following conditions are met:
@@ -38,47 +36,40 @@
   */
 
 /* Define to prevent recursive inclusion -------------------------------------*/
-#ifndef __MAIN_H__
-#define __MAIN_H__
+#ifndef __FONTS_H
+#define __FONTS_H
 
-/* Includes ------------------------------------------------------------------*/
-
-/* USER CODE BEGIN Includes */
-
-/* USER CODE END Includes */
-
-/* Private define ------------------------------------------------------------*/
-
-#define LCD_BL_Pin GPIO_PIN_7
-#define LCD_BL_GPIO_Port GPIOC
-#define LCD_DC_Pin GPIO_PIN_8
-#define LCD_DC_GPIO_Port GPIOA
-#define LCD_RST_Pin GPIO_PIN_9
-#define LCD_RST_GPIO_Port GPIOA
-#define LCD_CS_Pin GPIO_PIN_5
-#define LCD_CS_GPIO_Port GPIOB
-
-/* ########################## Assert Selection ############################## */
-/**
-  * @brief Uncomment the line below to expanse the "assert_param" macro in the 
-  *        HAL drivers code
-  */
-/* #define USE_FULL_ASSERT    1U */
-
-/* USER CODE BEGIN Private defines */
-
-/* USER CODE END Private defines */
+/* Max size of bitmap will based on a font24 (17x24) */
+#define MAX_HEIGHT_FONT         24
+#define MAX_WIDTH_FONT          17
+#define OFFSET_BITMAP           54
 
 #ifdef __cplusplus
  extern "C" {
 #endif
-void _Error_Handler(char *, int);
 
-#define Error_Handler() _Error_Handler(__FILE__, __LINE__)
+/* Includes ------------------------------------------------------------------*/
+#include <stdint.h>
+
+typedef struct _tFont
+{    
+  const uint8_t *table;
+  uint16_t Width;
+  uint16_t Height;
+  
+} sFONT;
+
+extern sFONT Font24;
+extern sFONT Font20;
+extern sFONT Font16;
+extern sFONT Font12;
+extern sFONT Font8;
+
 #ifdef __cplusplus
 }
 #endif
-
-#endif /* __MAIN_H__ */
+  
+#endif /* __FONTS_H */
+ 
 
 /************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
