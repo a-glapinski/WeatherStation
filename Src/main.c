@@ -41,15 +41,18 @@
 #include "stm32f4xx_hal.h"
 
 /* USER CODE BEGIN Includes */
+#include <string.h>
 #include "bmp280.h"
-#include "spi.h"
-#include "DEV_Config.h"
+#include "st7735.h"
+#include "fonts.h"
+#include "images/testimg.h"
+#include "images/termometr.h"
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
 I2C_HandleTypeDef hi2c1;
 
-//SPI_HandleTypeDef hspi1;
+SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim1;
 
@@ -77,6 +80,37 @@ static void MX_SPI1_Init(void);
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+void sensor_init() {
+	bmp280_init_default_params(&bmp280.params);
+	bmp280.addr = BMP280_I2C_ADDRESS_1;
+	bmp280.i2c = &hi2c1;
+	bmp280_init(&bmp280, &bmp280.params);
+}
+
+void LCD_init() {
+    ST7735_Init();
+    ST7735_DrawImage(0, 0, 160, 128, (uint16_t *) image_data_termometr);
+    HAL_Delay(3000);
+//    for (uint8_t i = 0; i < ST7735_HEIGHT; i++) {
+//        HAL_Delay(10);
+//        ST7735_FillRectangle(0, i, ST7735_WIDTH, 1, ST7735_WHITE);
+//    }
+    ST7735_FillScreen(ST7735_WHITE);
+    ST7735_WriteString(3, 10, "Temp:", Font_11x18, ST7735_BLACK, ST7735_WHITE);
+    ST7735_WriteString(3, 30, "Press:", Font_11x18, ST7735_BLACK, ST7735_WHITE);
+    ST7735_WriteString(3, 50, "Hum:", Font_11x18, ST7735_BLACK, ST7735_WHITE);
+
+//    ST7735_WriteString(130, 10, "*C", Font_11x18, ST7735_BLACK, ST7735_WHITE);
+//    ST7735_WriteString(130, 30, "hPa", Font_11x18, ST7735_BLACK, ST7735_WHITE);
+//    ST7735_WriteString(130, 50, "%", Font_11x18, ST7735_BLACK, ST7735_WHITE);
+}
+
+void LCD_loop(float *temp, float *press, float *hum) {
+    ST7735_WriteNumber(70, 10, *temp, Font_11x18, ST7735_BLACK, ST7735_WHITE);
+    ST7735_WriteNumber(70, 30, *press, Font_11x18, ST7735_BLACK, ST7735_WHITE);
+    ST7735_WriteNumber(70, 50, *hum, Font_11x18, ST7735_BLACK, ST7735_WHITE);
+    HAL_Delay(500);
+}
 
 /* USER CODE END 0 */
 
@@ -113,26 +147,17 @@ int main(void)
   MX_TIM1_Init();
   MX_SPI1_Init();
   /* USER CODE BEGIN 2 */
+  	sensor_init();
+
     HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL); // enkoder
 
-    bmp280_init_default_params(&bmp280.params);
-    bmp280.addr = BMP280_I2C_ADDRESS_1;
-    bmp280.i2c = &hi2c1;
+    LCD_init();
 
-    bmp280_init(&bmp280, &bmp280.params);
-
-    bool bme280p = bmp280.id == BME280_CHIP_ID;
-
-    // "**********Init LCD**********
-    LCD_SCAN_DIR Lcd_ScanDir = SCAN_DIR_DFT;//SCAN_DIR_DFT = D2U_L2R
-    LCD_Init( Lcd_ScanDir );
-
-    /*---------------------------------------------------------------------------------
-                    //LCD basic skill
-    ---------------------------------------------------------------------------------*/
-    // LCD
-//    temperature = 23.50;
-
+//    bmp280_init_default_params(&bmp280.params);
+//    bmp280.addr = BMP280_I2C_ADDRESS_1;
+//    bmp280.i2c = &hi2c1;
+//    bmp280_init(&bmp280, &bmp280.params);
+//    bool bme280p = bmp280.id == BME280_CHIP_ID;
 
   /* USER CODE END 2 */
 
@@ -140,21 +165,19 @@ int main(void)
   /* USER CODE BEGIN WHILE */
     while (1)
     {
-        // Enkoder
+    	/* Encoder -----------------------------------------------*/
         pulse_count = TIM1->CNT; // przepisanie wartosci z rejestru timera
-        positions = pulse_count/4; // zeskalowanie impulsow do liczby stabilnych pozycji walu enkodera
+        positions = pulse_count / 4; // zeskalowanie impulsow do liczby stabilnych pozycji walu enkodera
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-
-        // Sensor
+        /* Sensor ------------------------------------------------*/
         HAL_Delay(100);
         bmp280_read_float(&bmp280, &temperature, &pressure, &humidity);
         pressure_hPa = pressure / 100;
 
-        LCD_Clear(LCD_BACKGROUND);
-        LCD_Show(&temperature, &pressure_hPa, &humidity);
-        Driver_Delay_ms(5000);
+        /* LCD ---------------------------------------------------*/
+        LCD_loop(&temperature, &pressure_hPa, &humidity);
     }
   /* USER CODE END 3 */
 
@@ -217,7 +240,7 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/* I2C1 init function */
+/* I2C1 LCD_init function */
 static void MX_I2C1_Init(void)
 {
 
@@ -237,7 +260,7 @@ static void MX_I2C1_Init(void)
 
 }
 
-/* SPI1 init function */
+/* SPI1 LCD_init function */
 static void MX_SPI1_Init(void)
 {
 
@@ -261,7 +284,7 @@ static void MX_SPI1_Init(void)
 
 }
 
-/* TIM1 init function */
+/* TIM1 LCD_init function */
 static void MX_TIM1_Init(void)
 {
 

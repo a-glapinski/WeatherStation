@@ -4,49 +4,28 @@
 
 # Add inputs and outputs from these tool invocations to the build variables 
 C_SRCS += \
-../Src/DEV_Config.c \
-../Src/LCD.c \
 ../Src/bmp280.c \
-../Src/font12.c \
-../Src/font16.c \
-../Src/font20.c \
-../Src/font24.c \
-../Src/font8.c \
-../Src/gpio.c \
+../Src/fonts.c \
 ../Src/main.c \
-../Src/spi.c \
+../Src/st7735.c \
 ../Src/stm32f4xx_hal_msp.c \
 ../Src/stm32f4xx_it.c \
 ../Src/system_stm32f4xx.c 
 
 OBJS += \
-./Src/DEV_Config.o \
-./Src/LCD.o \
 ./Src/bmp280.o \
-./Src/font12.o \
-./Src/font16.o \
-./Src/font20.o \
-./Src/font24.o \
-./Src/font8.o \
-./Src/gpio.o \
+./Src/fonts.o \
 ./Src/main.o \
-./Src/spi.o \
+./Src/st7735.o \
 ./Src/stm32f4xx_hal_msp.o \
 ./Src/stm32f4xx_it.o \
 ./Src/system_stm32f4xx.o 
 
 C_DEPS += \
-./Src/DEV_Config.d \
-./Src/LCD.d \
 ./Src/bmp280.d \
-./Src/font12.d \
-./Src/font16.d \
-./Src/font20.d \
-./Src/font24.d \
-./Src/font8.d \
-./Src/gpio.d \
+./Src/fonts.d \
 ./Src/main.d \
-./Src/spi.d \
+./Src/st7735.d \
 ./Src/stm32f4xx_hal_msp.d \
 ./Src/stm32f4xx_it.d \
 ./Src/system_stm32f4xx.d 
