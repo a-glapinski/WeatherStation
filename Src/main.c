@@ -42,6 +42,8 @@
 
 /* USER CODE BEGIN Includes */
 #include <string.h>
+#include <stdlib.h>
+#include <math.h>
 #include "bmp280.h"
 #include "st7735.h"
 #include "fonts.h"
@@ -55,6 +57,7 @@ I2C_HandleTypeDef hi2c1;
 SPI_HandleTypeDef hspi1;
 
 TIM_HandleTypeDef htim1;
+TIM_HandleTypeDef htim4;
 
 /* USER CODE BEGIN PV */
 /* Private variables ---------------------------------------------------------*/
@@ -65,6 +68,11 @@ float pressure_hPa;
 
 volatile uint16_t pulse_count; // Licznik impulsow
 volatile uint16_t positions; // Licznik przekreconych pozycji
+volatile uint16_t position1;
+volatile uint16_t position2;
+volatile uint16_t roznica;
+volatile uint16_t predkosc_katowa;
+volatile uint16_t predkosc_liniowa;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -73,18 +81,43 @@ static void MX_GPIO_Init(void);
 static void MX_I2C1_Init(void);
 static void MX_TIM1_Init(void);
 static void MX_SPI1_Init(void);
+static void MX_TIM4_Init(void);
 
 /* USER CODE BEGIN PFP */
 /* Private function prototypes -----------------------------------------------*/
-
+void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
+    if (htim->Instance == TIM4) {
+        pulse_count = TIM1->CNT;
+        position2 = position1;
+        position1 = pulse_count / 2;
+        roznica = abs(position2 - position1);
+        if (roznica > 100)
+            roznica = 403 - roznica;
+        predkosc_katowa = roznica * (15 * M_PI /180) / 0.5;
+        predkosc_liniowa = predkosc_katowa * 0.04 * 3.6;
+    }
+}
 /* USER CODE END PFP */
 
 /* USER CODE BEGIN 0 */
+
+/**
+ * Initialize BME280 temperature, pressure and humidity sensor
+ */
 void sensor_init() {
 	bmp280_init_default_params(&bmp280.params);
 	bmp280.addr = BMP280_I2C_ADDRESS_1;
 	bmp280.i2c = &hi2c1;
 	bmp280_init(&bmp280, &bmp280.params);
+}
+
+/**
+ * Initialize ST7735S LCD display
+ */
+void encoder_init() {
+    pulse_count = TIM1->CNT;
+    position1 = pulse_count/2;
+    position2 = pulse_count/2;
 }
 
 void LCD_init() {
@@ -100,12 +133,12 @@ void LCD_init() {
     ST7735_WriteString(3, 30, "Press:", Font_11x18, ST7735_BLACK, ST7735_WHITE);
     ST7735_WriteString(3, 50, "Hum:", Font_11x18, ST7735_BLACK, ST7735_WHITE);
 
-//    ST7735_WriteString(130, 10, "*C", Font_11x18, ST7735_BLACK, ST7735_WHITE);
+//    ST7735_WriteString(130, 10, "C", Font_11x18, ST7735_BLACK, ST7735_WHITE);
 //    ST7735_WriteString(130, 30, "hPa", Font_11x18, ST7735_BLACK, ST7735_WHITE);
 //    ST7735_WriteString(130, 50, "%", Font_11x18, ST7735_BLACK, ST7735_WHITE);
 }
 
-void LCD_loop(float *temp, float *press, float *hum) {
+void LCD_loop(const float *temp, const float *press, const float *hum) {
     ST7735_WriteNumber(70, 10, *temp, Font_11x18, ST7735_BLACK, ST7735_WHITE);
     ST7735_WriteNumber(70, 30, *press, Font_11x18, ST7735_BLACK, ST7735_WHITE);
     ST7735_WriteNumber(70, 50, *hum, Font_11x18, ST7735_BLACK, ST7735_WHITE);
@@ -146,18 +179,16 @@ int main(void)
   MX_I2C1_Init();
   MX_TIM1_Init();
   MX_SPI1_Init();
+  MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
+
   	sensor_init();
 
     HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL); // enkoder
-
+    encoder_init();
     LCD_init();
+    HAL_TIM_Base_Start_IT(&htim4);
 
-//    bmp280_init_default_params(&bmp280.params);
-//    bmp280.addr = BMP280_I2C_ADDRESS_1;
-//    bmp280.i2c = &hi2c1;
-//    bmp280_init(&bmp280, &bmp280.params);
-//    bool bme280p = bmp280.id == BME280_CHIP_ID;
 
   /* USER CODE END 2 */
 
@@ -166,8 +197,8 @@ int main(void)
     while (1)
     {
     	/* Encoder -----------------------------------------------*/
-        pulse_count = TIM1->CNT; // przepisanie wartosci z rejestru timera
-        positions = pulse_count / 4; // zeskalowanie impulsow do liczby stabilnych pozycji walu enkodera
+        //pulse_count = TIM1->CNT; // przepisanie wartosci z rejestru timera
+        //positions = pulse_count / 2; // zeskalowanie impulsow do liczby stabilnych pozycji walu enkodera
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
@@ -240,7 +271,7 @@ void SystemClock_Config(void)
   HAL_NVIC_SetPriority(SysTick_IRQn, 0, 0);
 }
 
-/* I2C1 LCD_init function */
+/* I2C1 init function */
 static void MX_I2C1_Init(void)
 {
 
@@ -260,14 +291,14 @@ static void MX_I2C1_Init(void)
 
 }
 
-/* SPI1 LCD_init function */
+/* SPI1 init function */
 static void MX_SPI1_Init(void)
 {
 
   /* SPI1 parameter configuration*/
   hspi1.Instance = SPI1;
   hspi1.Init.Mode = SPI_MODE_MASTER;
-  hspi1.Init.Direction = SPI_DIRECTION_2LINES;
+  hspi1.Init.Direction = SPI_DIRECTION_1LINE;
   hspi1.Init.DataSize = SPI_DATASIZE_8BIT;
   hspi1.Init.CLKPolarity = SPI_POLARITY_LOW;
   hspi1.Init.CLKPhase = SPI_PHASE_1EDGE;
@@ -284,7 +315,7 @@ static void MX_SPI1_Init(void)
 
 }
 
-/* TIM1 LCD_init function */
+/* TIM1 init function */
 static void MX_TIM1_Init(void)
 {
 
@@ -320,6 +351,38 @@ static void MX_TIM1_Init(void)
 
 }
 
+/* TIM4 init function */
+static void MX_TIM4_Init(void)
+{
+
+  TIM_ClockConfigTypeDef sClockSourceConfig;
+  TIM_MasterConfigTypeDef sMasterConfig;
+
+  htim4.Instance = TIM4;
+  htim4.Init.Prescaler = 9999;
+  htim4.Init.CounterMode = TIM_COUNTERMODE_UP;
+  htim4.Init.Period = 8399;
+  htim4.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
+  if (HAL_TIM_Base_Init(&htim4) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sClockSourceConfig.ClockSource = TIM_CLOCKSOURCE_INTERNAL;
+  if (HAL_TIM_ConfigClockSource(&htim4, &sClockSourceConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+  sMasterConfig.MasterOutputTrigger = TIM_TRGO_RESET;
+  sMasterConfig.MasterSlaveMode = TIM_MASTERSLAVEMODE_DISABLE;
+  if (HAL_TIMEx_MasterConfigSynchronization(&htim4, &sMasterConfig) != HAL_OK)
+  {
+    _Error_Handler(__FILE__, __LINE__);
+  }
+
+}
+
 /** Configure pins as 
         * Analog 
         * Input 
@@ -336,12 +399,8 @@ static void MX_GPIO_Init(void)
   __HAL_RCC_GPIOH_CLK_ENABLE();
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOE_CLK_ENABLE();
-  __HAL_RCC_GPIOD_CLK_ENABLE();
   __HAL_RCC_GPIOC_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
-
-  /*Configure GPIO pin Output Level */
-  HAL_GPIO_WritePin(GPIOD, GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15, GPIO_PIN_RESET);
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LCD_BL_GPIO_Port, LCD_BL_Pin, GPIO_PIN_RESET);
@@ -351,13 +410,6 @@ static void MX_GPIO_Init(void)
 
   /*Configure GPIO pin Output Level */
   HAL_GPIO_WritePin(LCD_CS_GPIO_Port, LCD_CS_Pin, GPIO_PIN_RESET);
-
-  /*Configure GPIO pins : PD12 PD13 PD14 PD15 */
-  GPIO_InitStruct.Pin = GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14|GPIO_PIN_15;
-  GPIO_InitStruct.Mode = GPIO_MODE_OUTPUT_PP;
-  GPIO_InitStruct.Pull = GPIO_NOPULL;
-  GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_LOW;
-  HAL_GPIO_Init(GPIOD, &GPIO_InitStruct);
 
   /*Configure GPIO pin : LCD_BL_Pin */
   GPIO_InitStruct.Pin = LCD_BL_Pin;
