@@ -49,6 +49,11 @@
 #include "fonts.h"
 #include "images/testimg.h"
 #include "images/termometr.h"
+
+#define promien 0.04
+#define km_h 3.6
+#define t_tim 0.5
+#define kat 15
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -66,13 +71,13 @@ BMP280_HandleTypedef bmp280;
 float pressure, temperature, humidity;
 float pressure_hPa;
 
-volatile uint16_t pulse_count; // Licznik impulsow
+volatile uint16_t licznik_impulsow;
 volatile uint16_t positions; // Licznik przekreconych pozycji
-volatile uint16_t position1;
-volatile uint16_t position2;
+volatile uint16_t pozycja1;
+volatile uint16_t pozycja2;
 volatile uint16_t roznica;
-volatile uint16_t predkosc_katowa;
-volatile uint16_t predkosc_liniowa;
+volatile float predkosc_katowa;
+volatile float predkosc_liniowa;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -87,14 +92,14 @@ static void MX_TIM4_Init(void);
 /* Private function prototypes -----------------------------------------------*/
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM4) {
-        pulse_count = TIM1->CNT;
-        position2 = position1;
-        position1 = pulse_count / 2;
-        roznica = abs(position2 - position1);
+        licznik_impulsow = TIM1->CNT;
+        pozycja2 = pozycja1;
+        pozycja1 = licznik_impulsow / 2;
+        roznica = abs(pozycja2 - pozycja1);
         if (roznica > 100)
-            roznica = 403 - roznica;
-        predkosc_katowa = roznica * (15 * M_PI /180) / 0.5;
-        predkosc_liniowa = predkosc_katowa * 0.04 * 3.6;
+            roznica = 201 - roznica;
+        predkosc_katowa = (roznica * kat / t_tim) * M_PI / 180;
+        predkosc_liniowa = predkosc_katowa * promien * km_h;
     }
 }
 /* USER CODE END PFP */
@@ -115,9 +120,9 @@ void sensor_init() {
  * Initialize ST7735S LCD display
  */
 void encoder_init() {
-    pulse_count = TIM1->CNT;
-    position1 = pulse_count/2;
-    position2 = pulse_count/2;
+    licznik_impulsow = TIM1->CNT;
+    pozycja1 = licznik_impulsow/2;
+    pozycja2 = licznik_impulsow/2;
 }
 
 void LCD_init() {
@@ -198,7 +203,7 @@ int main(void)
     {
     	/* Encoder -----------------------------------------------*/
         //pulse_count = TIM1->CNT; // przepisanie wartosci z rejestru timera
-        //positions = pulse_count / 2; // zeskalowanie impulsow do liczby stabilnych pozycji walu enkodera
+        //positions = licznik_impulsow / 2; // zeskalowanie impulsow do liczby stabilnych pozycji walu enkodera
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
