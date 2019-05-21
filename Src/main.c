@@ -50,10 +50,10 @@
 #include "images/testimg.h"
 #include "images/termometr.h"
 
-#define promien 0.04
-#define km_h 3.6
-#define t_tim 0.5
-#define kat 15
+#define RADIUS 0.04
+#define KM_H 3.6
+#define T_TIM 0.5
+#define ANGLE 15
 /* USER CODE END Includes */
 
 /* Private variables ---------------------------------------------------------*/
@@ -71,13 +71,12 @@ BMP280_HandleTypedef bmp280;
 float pressure, temperature, humidity;
 float pressure_hPa;
 
-volatile uint16_t licznik_impulsow;
-volatile uint16_t positions; // Licznik przekreconych pozycji
-volatile uint16_t pozycja1;
-volatile uint16_t pozycja2;
-volatile uint16_t roznica;
-volatile float predkosc_katowa;
-volatile float predkosc_liniowa;
+volatile uint16_t pulse_count;
+volatile uint16_t position1;
+volatile uint16_t position2;
+volatile uint16_t angle_remainder;
+volatile float angular_velocity;
+volatile float velocity;
 /* USER CODE END PV */
 
 /* Private function prototypes -----------------------------------------------*/
@@ -92,14 +91,14 @@ static void MX_TIM4_Init(void);
 /* Private function prototypes -----------------------------------------------*/
 void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
     if (htim->Instance == TIM4) {
-        licznik_impulsow = TIM1->CNT;
-        pozycja2 = pozycja1;
-        pozycja1 = licznik_impulsow / 2;
-        roznica = abs(pozycja2 - pozycja1);
-        if (roznica > 100)
-            roznica = 201 - roznica;
-        predkosc_katowa = (roznica * kat / t_tim) * M_PI / 180;
-        predkosc_liniowa = predkosc_katowa * promien * km_h;
+        pulse_count = TIM1->CNT;
+        position2 = position1;
+        position1 = pulse_count / 2;
+        angle_remainder = abs(position2 - position1);
+        if (angle_remainder > 150)
+            angle_remainder = 201 - angle_remainder;
+        angular_velocity = (angle_remainder * ANGLE / T_TIM) * M_PI / 180;
+        velocity = angular_velocity * RADIUS * KM_H;
     }
 }
 /* USER CODE END PFP */
@@ -120,9 +119,9 @@ void sensor_init() {
  * Initialize ST7735S LCD display
  */
 void encoder_init() {
-    licznik_impulsow = TIM1->CNT;
-    pozycja1 = licznik_impulsow/2;
-    pozycja2 = licznik_impulsow/2;
+    pulse_count = TIM1->CNT;
+    position1 = pulse_count/2;
+    position2 = pulse_count/2;
 }
 
 void LCD_init() {
@@ -201,9 +200,6 @@ int main(void)
   /* USER CODE BEGIN WHILE */
     while (1)
     {
-    	/* Encoder -----------------------------------------------*/
-        //pulse_count = TIM1->CNT; // przepisanie wartosci z rejestru timera
-        //positions = licznik_impulsow / 2; // zeskalowanie impulsow do liczby stabilnych pozycji walu enkodera
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
