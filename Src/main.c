@@ -47,7 +47,7 @@
 #include "bmp280.h"
 #include "st7735.h"
 #include "fonts.h"
-#include "images/testimg.h"
+#include "images/testimg2.h"
 #include "images/termometr.h"
 
 #define RADIUS 0.04
@@ -72,8 +72,8 @@ float pressure, temperature, humidity;
 float pressure_hPa;
 
 volatile uint16_t pulse_count;
-volatile uint16_t position1;
-volatile uint16_t position2;
+volatile uint16_t position1 = 0;
+volatile uint16_t position2 = 0;
 volatile uint16_t angle_remainder;
 volatile float angular_velocity;
 volatile float velocity;
@@ -100,6 +100,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         angular_velocity = (angle_remainder * ANGLE / T_TIM) * M_PI / 180;
         velocity = angular_velocity * RADIUS * KM_H;
     }
+
 }
 /* USER CODE END PFP */
 
@@ -115,27 +116,26 @@ void sensor_init() {
 	bmp280_init(&bmp280, &bmp280.params);
 }
 
-/**
- * Initialize ST7735S LCD display
- */
 void encoder_init() {
     pulse_count = TIM1->CNT;
     position1 = pulse_count/2;
     position2 = pulse_count/2;
 }
 
+/**
+ * Initialize ST7735S LCD display
+ */
+
 void LCD_init() {
     ST7735_Init();
-    ST7735_DrawImage(0, 0, 160, 128, (uint16_t *) image_data_termometr);
+    //ST7735_DrawImage(0, 0, 128, 128, (uint16_t *) image_data_termometr);
+    ST7735_DrawImage(0, 0, 160, 128, (uint16_t *) test_img_128x128);
     HAL_Delay(3000);
-//    for (uint8_t i = 0; i < ST7735_HEIGHT; i++) {
-//        HAL_Delay(10);
-//        ST7735_FillRectangle(0, i, ST7735_WIDTH, 1, ST7735_WHITE);
-//    }
-    ST7735_FillScreen(ST7735_WHITE);
-    ST7735_WriteString(3, 10, "Temp:", Font_11x18, ST7735_BLACK, ST7735_WHITE);
-    ST7735_WriteString(3, 30, "Press:", Font_11x18, ST7735_BLACK, ST7735_WHITE);
-    ST7735_WriteString(3, 50, "Hum:", Font_11x18, ST7735_BLACK, ST7735_WHITE);
+
+    ST7735_FillScreen(ST7735_GREEN);
+    ST7735_WriteString(3, 10, "Temp:", Font_11x18, ST7735_BLACK, ST7735_GREEN);
+    ST7735_WriteString(3, 30, "Press:", Font_11x18, ST7735_BLACK, ST7735_GREEN);
+    ST7735_WriteString(3, 50, "Hum:", Font_11x18, ST7735_BLACK, ST7735_GREEN);
 
 //    ST7735_WriteString(130, 10, "C", Font_11x18, ST7735_BLACK, ST7735_WHITE);
 //    ST7735_WriteString(130, 30, "hPa", Font_11x18, ST7735_BLACK, ST7735_WHITE);
@@ -189,7 +189,7 @@ int main(void)
   	sensor_init();
 
     HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL); // enkoder
-    encoder_init();
+    //encoder_init();
     LCD_init();
     HAL_TIM_Base_Start_IT(&htim4);
 
@@ -209,6 +209,7 @@ int main(void)
         pressure_hPa = pressure / 100;
 
         /* LCD ---------------------------------------------------*/
+
         LCD_loop(&temperature, &pressure_hPa, &humidity);
     }
   /* USER CODE END 3 */

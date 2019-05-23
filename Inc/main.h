@@ -49,6 +49,10 @@
 
 /* Private define ------------------------------------------------------------*/
 
+#define LCD_CLK_Pin GPIO_PIN_5
+#define LCD_CLK_GPIO_Port GPIOA
+#define LCD_DIN_Pin GPIO_PIN_7
+#define LCD_DIN_GPIO_Port GPIOA
 #define LCD_BL_Pin GPIO_PIN_7
 #define LCD_BL_GPIO_Port GPIOC
 #define LCD_DC_Pin GPIO_PIN_8
