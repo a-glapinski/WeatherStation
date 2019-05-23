@@ -124,24 +124,24 @@ void LCD_init() {
     ST7735_DrawImage(0, 0, 160, 128, (uint16_t *) widget);
     HAL_Delay(3000);
 
-
     ST7735_FillScreen(ST7735_BACKGROUND);
     ST7735_DrawImage(10, 7, 24, 24, (uint16_t *) termometer);
     ST7735_DrawImage(10, 37, 24, 24, (uint16_t *) barometer);
     ST7735_DrawImage(10, 67, 24, 24, (uint16_t *) humidity_img);
     ST7735_DrawImage(10, 97, 24, 24, (uint16_t *) wind);
-    HAL_Delay(3000);
 
     ST7735_WriteString(100, 11, "C", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     ST7735_WriteString(120, 41, "hPa", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     ST7735_WriteString(100, 71, "%", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
-    ST7735_WriteString(50, 101, "WIATEEER", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+    ST7735_WriteString(100, 101, "km/h", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
 }
 
-void LCD_loop(const float *temp, const float *press, const float *hum) {
+void LCD_loop(const float *temp, const float *press, const float *hum, volatile const float *vel) {
     ST7735_WriteNumber(40, 11, *temp, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     ST7735_WriteNumber(40, 41, *press, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     ST7735_WriteNumber(40, 71, *hum, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+//    velocity = 10;
+    ST7735_WriteNumber(40, 101, *vel, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     HAL_Delay(500);
 }
 
@@ -205,7 +205,7 @@ int main(void)
 
         /* LCD ---------------------------------------------------*/
 
-        LCD_loop(&temperature, &pressure_hPa, &humidity);
+        LCD_loop(&temperature, &pressure_hPa, &humidity, &velocity);
     }
   /* USER CODE END 3 */
 
