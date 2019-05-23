@@ -230,6 +230,7 @@ extern SPI_HandleTypeDef ST7735_SPI_PORT;
 #define ST7735_YELLOW  0xFFE0
 #define ST7735_WHITE   0xFFFF
 #define ST7735_COLOR565(r, g, b) (((r & 0xF8) << 8) | ((g & 0xFC) << 3) | ((b & 0xF8) >> 3))
+#define ST7735_BACKGROUND ST7735_COLOR565(100, 218, 245)
 
 // call before initializing any SPI devices
 void ST7735_Unselect();

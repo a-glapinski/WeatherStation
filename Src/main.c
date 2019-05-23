@@ -47,8 +47,7 @@
 #include "bmp280.h"
 #include "st7735.h"
 #include "fonts.h"
-#include "images/testimg2.h"
-#include "images/termometr.h"
+#include "images/widgets.h"
 
 #define RADIUS 0.04
 #define KM_H 3.6
@@ -116,36 +115,33 @@ void sensor_init() {
 	bmp280_init(&bmp280, &bmp280.params);
 }
 
-void encoder_init() {
-    pulse_count = TIM1->CNT;
-    position1 = pulse_count/2;
-    position2 = pulse_count/2;
-}
-
 /**
  * Initialize ST7735S LCD display
  */
 
 void LCD_init() {
     ST7735_Init();
-    //ST7735_DrawImage(0, 0, 128, 128, (uint16_t *) image_data_termometr);
-    ST7735_DrawImage(0, 0, 160, 128, (uint16_t *) test_img_128x128);
+    ST7735_DrawImage(0, 0, 160, 128, (uint16_t *) widget);
     HAL_Delay(3000);
 
-    ST7735_FillScreen(ST7735_GREEN);
-    ST7735_WriteString(3, 10, "Temp:", Font_11x18, ST7735_BLACK, ST7735_GREEN);
-    ST7735_WriteString(3, 30, "Press:", Font_11x18, ST7735_BLACK, ST7735_GREEN);
-    ST7735_WriteString(3, 50, "Hum:", Font_11x18, ST7735_BLACK, ST7735_GREEN);
 
-//    ST7735_WriteString(130, 10, "C", Font_11x18, ST7735_BLACK, ST7735_WHITE);
-//    ST7735_WriteString(130, 30, "hPa", Font_11x18, ST7735_BLACK, ST7735_WHITE);
-//    ST7735_WriteString(130, 50, "%", Font_11x18, ST7735_BLACK, ST7735_WHITE);
+    ST7735_FillScreen(ST7735_BACKGROUND);
+    ST7735_DrawImage(10, 7, 24, 24, (uint16_t *) termometer);
+    ST7735_DrawImage(10, 37, 24, 24, (uint16_t *) barometer);
+    ST7735_DrawImage(10, 67, 24, 24, (uint16_t *) humidity_img);
+    ST7735_DrawImage(10, 97, 24, 24, (uint16_t *) wind);
+    HAL_Delay(3000);
+
+    ST7735_WriteString(100, 11, "C", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+    ST7735_WriteString(120, 41, "hPa", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+    ST7735_WriteString(100, 71, "%", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+    ST7735_WriteString(50, 101, "WIATEEER", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
 }
 
 void LCD_loop(const float *temp, const float *press, const float *hum) {
-    ST7735_WriteNumber(70, 10, *temp, Font_11x18, ST7735_BLACK, ST7735_WHITE);
-    ST7735_WriteNumber(70, 30, *press, Font_11x18, ST7735_BLACK, ST7735_WHITE);
-    ST7735_WriteNumber(70, 50, *hum, Font_11x18, ST7735_BLACK, ST7735_WHITE);
+    ST7735_WriteNumber(40, 11, *temp, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+    ST7735_WriteNumber(40, 41, *press, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+    ST7735_WriteNumber(40, 71, *hum, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     HAL_Delay(500);
 }
 
@@ -189,7 +185,6 @@ int main(void)
   	sensor_init();
 
     HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL); // enkoder
-    //encoder_init();
     LCD_init();
     HAL_TIM_Base_Start_IT(&htim4);
 
