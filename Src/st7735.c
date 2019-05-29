@@ -308,8 +308,10 @@ void ST7735_WriteNumber(uint16_t x, uint16_t y, float num,
     }
     }
     else {
-    	Num_Array[Num_Bit] = 0;
+    	Num_Array[Num_Bit] = '0';
+    	Num_Bit++;
     }
+
 
     //The string is inverted
     while (Num_Bit > 0) {
