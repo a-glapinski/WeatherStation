@@ -300,12 +300,16 @@ void ST7735_WriteNumber(uint16_t x, uint16_t y, float num,
     Num_Bit++;
 
     //Converts a number to a string
+    if (Number != 0) {
     while (Number) {
         Num_Array[Num_Bit] = Number % 10 + '0';
         Num_Bit++;
         Number /= 10;
     }
-
+    }
+    else {
+    	Num_Array[Num_Bit] = 0;
+    }
 
     //The string is inverted
     while (Num_Bit > 0) {
