@@ -130,7 +130,8 @@ void LCD_init() {
     ST7735_DrawImage(10, 67, 24, 24, (uint16_t *) humidity_img);
     ST7735_DrawImage(10, 97, 24, 24, (uint16_t *) wind);
 
-    ST7735_WriteString(100, 11, "C", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+    ST7735_DrawCircle(103, 15, 3, 0, 2, ST7735_BLACK);
+    ST7735_WriteString(110, 11, "C", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     ST7735_WriteString(120, 41, "hPa", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     ST7735_WriteString(100, 71, "%", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     ST7735_WriteString(100, 101, "km/h", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
@@ -140,7 +141,6 @@ void LCD_loop(const float *temp, const float *press, const float *hum, volatile 
     ST7735_WriteNumber(40, 11, *temp, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     ST7735_WriteNumber(40, 41, *press, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     ST7735_WriteNumber(40, 71, *hum, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
-//    velocity = 10;
     ST7735_WriteNumber(40, 101, *vel, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
     HAL_Delay(500);
 }
@@ -181,14 +181,11 @@ int main(void)
   MX_SPI1_Init();
   MX_TIM4_Init();
   /* USER CODE BEGIN 2 */
-
   	sensor_init();
-
-    HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL); // enkoder
+    HAL_TIM_Encoder_Start(&htim1, TIM_CHANNEL_ALL);
     LCD_init();
+
     HAL_TIM_Base_Start_IT(&htim4);
-
-
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -198,12 +195,9 @@ int main(void)
   /* USER CODE END WHILE */
 
   /* USER CODE BEGIN 3 */
-        /* Sensor ------------------------------------------------*/
         HAL_Delay(100);
         bmp280_read_float(&bmp280, &temperature, &pressure, &humidity);
         pressure_hPa = pressure / 100;
-
-        /* LCD ---------------------------------------------------*/
 
         LCD_loop(&temperature, &pressure_hPa, &humidity, &velocity);
     }

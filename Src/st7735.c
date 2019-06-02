@@ -253,6 +253,44 @@ void ST7735_FillRectangle(uint16_t x, uint16_t y, uint16_t w, uint16_t h, uint16
     ST7735_Unselect();
 }
 
+void ST7735_DrawCircle(uint16_t x, uint16_t y, uint8_t radius, uint8_t fill, uint8_t size, uint16_t color)
+{
+    int a_, b_, P;
+    a_ = 0;
+    b_ = radius;
+    P = 1 - radius;
+    while (a_ <= b_)
+    {
+        if (fill == 1)
+        {
+            ST7735_FillRectangle(x - a_, y - b_, 2 * a_ + 1, 2 * b_ + 1, color);
+            ST7735_FillRectangle(x - b_, y - a_, 2 * b_ + 1, 2 * a_ + 1, color);
+        }
+        else
+        {
+            ST7735_FillRectangle(a_ + x, b_ + y, size, size, color);
+            ST7735_FillRectangle(b_ + x, a_ + y, size, size, color);
+            ST7735_FillRectangle(x - a_, b_ + y, size, size, color);
+            ST7735_FillRectangle(x - b_, a_ + y, size, size, color);
+            ST7735_FillRectangle(b_ + x, y - a_, size, size, color);
+            ST7735_FillRectangle(a_ + x, y - b_, size, size, color);
+            ST7735_FillRectangle(x - a_, y - b_, size, size, color);
+            ST7735_FillRectangle(x - b_, y - a_, size, size, color);
+        }
+        if (P < 0)
+        {
+            P = (P + 3) + (2 * a_);
+            a_++;
+        }
+        else
+        {
+            P = (P + 5) + (2 * (a_ - b_));
+            a_++;
+            b_--;
+        }
+    }
+}
+
 void ST7735_FillScreen(uint16_t color) {
     ST7735_FillRectangle(0, 0, ST7735_WIDTH, ST7735_HEIGHT, color);
 }
