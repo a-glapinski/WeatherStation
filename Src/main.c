@@ -94,7 +94,7 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         position2 = position1;
         position1 = pulse_count / 2;
         angle_remainder = abs(position2 - position1);
-        if (angle_remainder > 150)
+        if (angle_remainder > 140)
             angle_remainder = 201 - angle_remainder;
         angular_velocity = (angle_remainder * ANGLE / T_TIM) * M_PI / 180;
         velocity = angular_velocity * RADIUS * KM_H;
@@ -118,30 +118,34 @@ void sensor_init() {
 /**
  * Initialize ST7735S LCD display
  */
-
 void LCD_init() {
     ST7735_Init();
     ST7735_DrawImage(0, 0, 160, 128, (uint16_t *) widget);
     HAL_Delay(3000);
 
-    ST7735_FillScreen(ST7735_BACKGROUND);
+    ST7735_FillScreen(ST7735_BGCOLOR);
     ST7735_DrawImage(10, 7, 24, 24, (uint16_t *) termometer);
     ST7735_DrawImage(10, 37, 24, 24, (uint16_t *) barometer);
     ST7735_DrawImage(10, 67, 24, 24, (uint16_t *) humidity_img);
     ST7735_DrawImage(10, 97, 24, 24, (uint16_t *) wind);
 
-    ST7735_DrawCircle(103, 15, 3, 0, 2, ST7735_BLACK);
-    ST7735_WriteString(110, 11, "C", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
-    ST7735_WriteString(120, 41, "hPa", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
-    ST7735_WriteString(100, 71, "%", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
-    ST7735_WriteString(100, 101, "km/h", Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+    ST7735_DrawCircle(104, 15, 3, 0, 2, ST7735_BLACK);
+    ST7735_WriteString(111, 11, "C", Font_11x18, ST7735_BLACK, ST7735_BGCOLOR);
+    ST7735_WriteString(120, 41, "hPa", Font_11x18, ST7735_BLACK, ST7735_BGCOLOR);
+    ST7735_WriteString(100, 71, "%", Font_11x18, ST7735_BLACK, ST7735_BGCOLOR);
+    ST7735_WriteString(100, 101, "km/h", Font_11x18, ST7735_BLACK, ST7735_BGCOLOR);
 }
 
-void LCD_loop(const float *temp, const float *press, const float *hum, volatile const float *vel) {
-    ST7735_WriteNumber(40, 11, *temp, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
-    ST7735_WriteNumber(40, 41, *press, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
-    ST7735_WriteNumber(40, 71, *hum, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
-    ST7735_WriteNumber(40, 101, *vel, Font_11x18, ST7735_BLACK, ST7735_BACKGROUND);
+void LCD_loop() {
+    ST7735_WriteNumber(40, 11, temperature, Font_11x18, ST7735_BLACK, ST7735_BGCOLOR);
+    ST7735_WriteNumber(40, 41, pressure_hPa, Font_11x18, ST7735_BLACK, ST7735_BGCOLOR);
+    ST7735_WriteNumber(40, 71, humidity, Font_11x18, ST7735_BLACK, ST7735_BGCOLOR);
+    if (velocity < 10) {
+        ST7735_FillRectangle(84, 101, 11, 18, ST7735_BGCOLOR);
+        ST7735_WriteNumber(40, 101, velocity, Font_11x18, ST7735_BLACK, ST7735_BGCOLOR);
+    } else {
+        ST7735_WriteNumber(40, 101, velocity, Font_11x18, ST7735_BLACK, ST7735_BGCOLOR);
+    }
     HAL_Delay(500);
 }
 
@@ -199,7 +203,7 @@ int main(void)
         bmp280_read_float(&bmp280, &temperature, &pressure, &humidity);
         pressure_hPa = pressure / 100;
 
-        LCD_loop(&temperature, &pressure_hPa, &humidity, &velocity);
+        LCD_loop();
     }
   /* USER CODE END 3 */
 
