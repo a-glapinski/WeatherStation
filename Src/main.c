@@ -94,8 +94,8 @@ void HAL_TIM_PeriodElapsedCallback(TIM_HandleTypeDef *htim) {
         position2 = position1;
         position1 = pulse_count / 2;
         angle_remainder = abs(position2 - position1);
-        if (angle_remainder > 140)
-            angle_remainder = 201 - angle_remainder;
+        if (angle_remainder > 300)
+            angle_remainder = 400 - angle_remainder;
         angular_velocity = (angle_remainder * ANGLE / T_TIM) * M_PI / 180;
         velocity = angular_velocity * RADIUS * KM_H;
     }
@@ -320,7 +320,7 @@ static void MX_TIM1_Init(void)
   htim1.Instance = TIM1;
   htim1.Init.Prescaler = 0;
   htim1.Init.CounterMode = TIM_COUNTERMODE_UP;
-  htim1.Init.Period = 403;
+  htim1.Init.Period = 800;
   htim1.Init.ClockDivision = TIM_CLOCKDIVISION_DIV1;
   htim1.Init.RepetitionCounter = 0;
   sConfig.EncoderMode = TIM_ENCODERMODE_TI12;
