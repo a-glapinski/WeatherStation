@@ -17,10 +17,10 @@ The program for STM32F4 is written in C, built with GCC compiler and downloaded 
 To run the program you need to have all the modules connected to the STM32F4 board as stated below: 
 
 |     | LCD_DIN | LCD_CLK | LCD_CS | LCD_DC | LCD_RST | SENSOR_SLC | SENSOR_SDA | ENC_SIGB | ENC_SIGA |
-|-----|---------|---------|--------|--------|---------|-----------:|-----------:|---------:|---------:|
-| PIN | PA7     | PA5     | PB5    | PA8    | PA9     |        PB6 |        PB7 |     PE11 |      PE9 |
+|:---:|:-------:|:-------:|:------:|:------:|:-------:|:----------:|:----------:|:--------:|:--------:|
+| PIN |   PA7   |   PA5   |   PB5  |   PA8  |   PA9   |     PB6    |     PB7    |   PE11   |    PE9   |
 
-You can also see the whole pinout of the project by opening `WeatherStation.ioc` file in STM32CubeMX.
+You can also see the whole pinout of the project by opening `WeatherStation.ioc` file in STM32CubeMX.  
 Afterwards, you just have to compile the program and transfer it to the board.
 ## How to compile
 To compile the program you need to clone this repository using either System Workbench for STM32 or CLion and build project.  
